@@ -1,6 +1,7 @@
 package com.example.oauthjwt.service;
 
 import com.example.oauthjwt.dto.*;
+import com.example.oauthjwt.entity.UserEntity;
 import com.example.oauthjwt.repository.UserRepository;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -40,13 +41,42 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         // 리소스 서버에서 발급받은 정보로 사용자를 특정할 아이디 값을 만듦
         String username = oAuth2Response.getProvider() + " " + oAuth2Response.getProviderId();
+        UserEntity existData = userRepository.findByUsername(username);
 
-        UserDTO userDTO = new UserDTO();
+        if (existData == null) {  // 가입하지 않은 회원일 경우 -> 가입
 
-        userDTO.setUsername(username);
-        userDTO.setName(oAuth2Response.getName());
-        userDTO.setRole("ROLE_USER");
+            // 가입
+            UserEntity userEntity = new UserEntity();
+            userEntity.setUsername(username);
+            userEntity.setEmail(oAuth2Response.getEmail());
+            userEntity.setName(oAuth2Response.getName());
+            userEntity.setRole("ROLE_USER");
 
-        return new CustomOAuth2User(userDTO);
+            userRepository.save(userEntity);
+
+            // 로그인 진행. Provider한테 넘김
+            UserDTO userDTO = new UserDTO();
+            userDTO.setUsername(username);
+            userDTO.setName(oAuth2Response.getName());
+            userDTO.setRole("ROLE_USER");
+
+            return new CustomOAuth2User(userDTO);
+        }
+        else { // 가입한 회원일 경우 -> 정보 수정
+
+            // 회원 정보 변경
+            existData.setEmail(oAuth2Response.getEmail());
+            existData.setName(oAuth2Response.getName());
+
+            userRepository.save(existData);
+
+            // 로그인 진행. Provider한테 넘김
+            UserDTO userDTO = new UserDTO();
+            userDTO.setUsername(existData.getUsername());
+            userDTO.setName(oAuth2Response.getName());
+            userDTO.setRole(existData.getRole());
+
+            return new CustomOAuth2User(userDTO);
+        }
     }
 }
