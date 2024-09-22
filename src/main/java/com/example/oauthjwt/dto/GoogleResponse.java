@@ -7,6 +7,7 @@ public class GoogleResponse implements OAuth2Response {
     private final Map<String, Object> attribute;
 
     public GoogleResponse(Map<String, Object> attribute) {
+        System.out.println("attribute" + attribute);
         this.attribute = attribute;
     }
 
@@ -17,7 +18,7 @@ public class GoogleResponse implements OAuth2Response {
 
     @Override
     public String getProviderId() {
-        return attribute.get("id").toString();
+        return attribute.get("sub").toString();
     }
 
     @Override
