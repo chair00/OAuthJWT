@@ -10,6 +10,6 @@ public class MyController {
     @GetMapping("/my")
     @ResponseBody
     public String myAPI() {
-        return "my route";
+        return "my";
     }
 }
